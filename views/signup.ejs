@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signup</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <h1>Signup</h1>
+    <form method="post" action="/user">
+        <label for="name">Full Name</label>
+        <input type="text" name="name" required>
+        <label for="email">Email</label>
+        <input type="text" name="email" required>
+        <label for="password">Password</label>
+        <input type="password" name="password" required>
+        <button type="submit">Signup</button>
+    </form>
+
+            <!-- Signup button below the login button -->
+            <div style="text-align: center; margin-top: 20px;">
+                <a href="/login" style="text-decoration: none;">
+                    <button type="button" class="login-button" >Login</button>
+                </a>
+            </div>
+</body>
+</html>

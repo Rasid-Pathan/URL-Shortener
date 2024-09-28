@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>URL Shortener</title>
+    <link rel="stylesheet" href="/css/home-styles.css">
+</head>
+
+<body>
+
+    <div class="short-link">
+        <ul>
+            <li>How to use short id = http://localhost:8001/url/ <b>"Your Short Id"</b></li>
+        </ul>
+    </div>
+
+    <div class="auth-links">
+        <% if (locals.user) { %>
+            Welcome, <%= user.name %> |
+                <a href="/logout">Logout</a>
+                <% } else { %>
+                    <a href="/login">Login</a>
+                    <% } %>
+    </div>
+
+    <h1>URL Shortener</h1>
+
+    <div>
+        <form id="urlForm" method="post">
+            <label for="url">Enter the original URL</label>
+            <input type="text" name="url" placeholder="https://example.com" required>
+            <button type="submit">Generate</button>
+        </form>
+    </div>
+
+    <div id="message"></div>
+    <div id="countdown"></div>
+
+    <div>
+        <% if (locals.urls) { %>
+            <table>
+                <thead>
+                    <th>S. No</th>
+                    <th>ShortId</th>
+                    <th>Redirect</th>
+                    <th>Created By</th>
+                    <th>Clicks</th>
+                </thead>
+                <tbody>
+                    <% urls.forEach((url, index)=> { %>
+                        <tr>
+                            <td>
+                                <%= index+1 %>
+                            </td>
+                            <td>
+                                <%= url.ShortId %>
+                            </td>
+                            <td>
+                                <%= url.redirecturl %>
+                            </td>
+                            <td>
+                                <%= url.createdby.name %>
+                            </td>
+                            <td>
+                                <%= url.visithistory.length %>
+                            </td>
+                        </tr>
+                        <% }) %>
+                </tbody>
+            </table>
+            <% } %>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('#urlForm').on('submit', function (event) {
+                event.preventDefault(); // Prevent the default form submission
+
+                $.ajax({
+                    type: 'POST',
+                    url: '/url',
+                    data: $(this).serialize(),
+                    success: function (response) {
+                        // Display the generated short URL with a countdown timer
+                        let countdown = 15; // Start from 15 seconds
+                        $('#message').html(
+                            `URL Generated: <a href="http://localhost:8001/url/${response.shortId}" target="_blank">http://localhost:8001/url/${response.shortId}</a>.<br>This message will disappear in <span id="countdown">${countdown}</span> seconds. Please copy it.`
+                        ).show();
+
+                        // Start the countdown timer
+                        let countdownInterval = setInterval(function () {
+                            countdown--; // Decrease the countdown
+
+                            // Update the countdown display
+                            $('#countdown').show();
+                            $('#countdown').text(countdown);
+
+                            // When countdown reaches 0, hide the message and clear the interval
+                            if (countdown <= 0) {
+                                clearInterval(countdownInterval); // Stop the timer
+                                $('#countdown').fadeOut(); // Hide the countdown
+                                $('#message').fadeOut(); // Hide the message
+                            }
+                        }, 1000); // Update every second
+
+                        // Update the table with new data by fetching updated URLs
+                        fetchUpdatedURLs();
+                    },
+                    error: function () {
+                        $('#message').text('Error generating the URL. Please try again.');
+                    }
+                });
+            });
+
+            function fetchUpdatedURLs() {
+                $.ajax({
+                    type: 'GET',
+                    url: '/url/updatedUrls', // An endpoint to get the latest URLs
+                    success: function (data) {
+                        let tableBody = '';
+                        data.urls.forEach((url, index) => {
+                            tableBody += `
+                        <tr>
+                            <td>${index + 1}</td>
+                            <td>${url.ShortId}</td>
+                            <td>${url.redirecturl}</td>
+                            <td>${url.createdby.name}</td>
+                            <td>${url.visithistory.length}</td>
+                        </tr>`;
+                        });
+                        $('tbody').html(tableBody); // Update the table body with new data
+                    },
+                    error: function () {
+                        console.error('Error fetching updated URLs');
+                    }
+                });
+            }
+        });
+
+    </script>
+</body>
+
+</html>
